@@ -157,7 +157,9 @@ var getWeather = function(lat, lon){
     
 }
 var test = function(){
-    console.log("test");
+    console.log(this.id);
 }
 formEl.on('submit', getLatLong);
-historyEl.on('submit', test);
+historyEl.on('click', 'button', function(){
+    getWeather(recentCities[this.id].lat, recentCities[this.id].long);
+});
