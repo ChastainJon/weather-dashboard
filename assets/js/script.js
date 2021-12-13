@@ -8,6 +8,8 @@ var historyEl = $("#history");
 var recentCities = [];
 var counter = 0;
 
+
+
 var getLatLong = function(){
     event.preventDefault();
     var cityInput = cityInputEl.val();
@@ -25,22 +27,10 @@ var getLatLong = function(){
         })
         .then(function(data){
             if(data[0].osm_type === "relation"){
-                var cityState = {
-                    "lat" : data[0].lat,
-                    "long" : data[0].lon
-                }
-                recentCities.push(cityState);
-            
-                //add buttons for recent cities
-                var recentCity = $('<button>');
-                recentCity.addClass("btn btn-secondary w-100 mb-3");
-                recentCity.attr("type", "submit");
-                recentCity.attr("id", counter);
-                console.log(recentCities[counter]);
-                counter++;
-                recentCity.text(cityInput+", "+ stateInput);
-                historyEl.append(recentCity);
+                
+                createHistoryButton(cityInput, stateInput, data[0].lat, data[0].lon);
                 getWeather(data[0].lat, data[0].lon);
+                localStorage.setItem("recentCities", JSON.stringify(recentCities));
 
             }
             
@@ -83,9 +73,6 @@ var getWeather = function(lat, lon){
             var humidityEl = $('<p>');
             humidityEl.text("Humidity: " + data.main.humidity + "%");
             
-
-
-
             currentWeatherEl.append(cityDateEl, tempEl, windEl, humidityEl);
             
         })
@@ -156,10 +143,38 @@ var getWeather = function(lat, lon){
 
     
 }
-var test = function(){
-    console.log(this.id);
+var createHistoryButton = function(city, state, lat, lon){
+    var cityState = {
+        "city" : city,
+        "state" : state,
+        "lat" : lat,
+        "long" : lon
+    }
+    recentCities.push(cityState);
+    //add buttons for recent cities
+    var recentCity = $('<button>');
+    recentCity.addClass("btn btn-secondary w-100 mb-3");
+    recentCity.attr("type", "submit");
+    recentCity.attr("id", counter);
+    counter++;
+    recentCity.text(city+", "+ state);
+    historyEl.append(recentCity);
+    
 }
+$(document).ready(function(){
+    var localStorageCities = JSON.parse(localStorage.getItem("recentCities"));
+    console.log(localStorageCities);
+    if(!localStorageCities){
+        return;
+    }
+    else{
+        for(i=0; i<localStorageCities.length; i++){
+            createHistoryButton(localStorageCities[i].city, localStorageCities[i].state, localStorageCities[i].lat, localStorageCities[i].long);
+        }
+    }
+})
 formEl.on('submit', getLatLong);
 historyEl.on('click', 'button', function(){
+    console.log(recentCities[this.id]);
     getWeather(recentCities[this.id].lat, recentCities[this.id].long);
 });
